@@ -1,0 +1,181 @@
+<template>
+    <Layout class="admin-child-syspage page-user">
+        <div class="search">
+            <Input v-model="username" search style="width:200px;margin-right:10px" />
+            <Button type="success">新增</Button>
+        </div>
+        <div class="data">
+            <Table
+                border
+                size="small"
+                :data="data"
+                :columns="columns"
+                :loading="loading"
+            />
+        </div>
+        <div class="pager">
+            <Button type="error">批量删除</Button>
+            <Page
+                :total="totalCount"
+                :current.sync="current"
+                @on-page-size-change="(size) => this.limit = size"
+                show-sizer
+                :page-size="limit"
+                :page-size-opts="[5, 10]"
+            />
+        </div>
+    </Layout>
+</template>
+
+<script>
+import http from '@/utils/http';
+export default {
+    data() {
+        return {
+            // 表体数据
+            data: [],
+            // 表头数据
+            columns: [
+                {
+                    type: 'selection',
+                    width: 50
+                },
+                {
+                    title: 'ID',
+                    align: 'center',
+                    key: 'userId',
+                    sortable: true
+                },
+                {
+                    title: '用户名',
+                    align: 'center',
+                    key: 'username',
+                    sortable: true
+                },
+                {
+                    title: '邮箱',
+                    key: 'email',
+                    align: 'center'
+                },
+                {
+                    title: '手机',
+                    key: 'mobile',
+                    align: 'center'
+                },
+                {
+                    title: '状态',
+                    key: 'status',
+                    align: 'center'
+                },
+                {
+                    title: '创建时间',
+                    key: 'createTime',
+                    align: 'center',
+                    sortable: true
+                },
+                {
+                    title: '操作',
+                    align: 'center',
+                    render: (h, params) => {
+                        return h('div', [
+                            h('Button', {
+                                props: {
+                                    type: 'success',
+                                    size: 'small'
+                                },
+                                style: {
+                                    marginRight: '7px'
+                                }
+                            }, '修改'),
+                            h('Button', {
+                                props: {
+                                    type: 'error',
+                                    size: 'small'
+                                }
+                            }, '删除')
+                        ]);
+                    }
+                }
+            ],
+            // 当前页码
+            current: 1,
+            // 查询条数限制
+            limit: 10,
+            // 排序字段
+            sidx: 'userId',
+            // 排序方式
+            order: 'desc',
+            // 要查询的用户名
+            username: '',
+            // 总共的条数
+            totalCount: 1,
+            // 总共的页数
+            totalPage: 1,
+            // 表格的加载状态
+            loading: true
+        };
+    },
+    watch: {
+        current() {
+            this.loading = true;
+            this.getUsers();
+        },
+        limit() {
+            this.loading = true;
+            this.getUsers();
+        },
+        username() {
+            this.loading = true;
+            this.current = 1;
+            this.getUsers();
+        }
+    },
+    created() {
+        this.loading = true;
+        this.getUsers();
+    },
+    methods: {
+        getUsers() {
+            const { current, limit, sidx, order, username } = this;
+            http.get('/sys/user/list', {
+                params: {
+                    page: current,
+                    limit,
+                    sidx,
+                    order,
+                    username
+                }
+            }).then(({data}) => {
+                const { code, msg, page } = data;
+                if (code === 0) {
+                    const { currPage, pageSize, totalCount, totalPage, list } = page;
+                    this.current = currPage;
+                    this.limit = pageSize;
+                    this.totalCount = totalCount;
+                    this.totalPage = totalPage;
+                    this.data = list;
+                } else {
+                    this.$Message.error(msg);
+                }
+                this.loading = false;
+            });
+        }
+    }
+};
+</script>
+
+<style>
+.page-user {
+    width: 90%;
+}
+.page-user .data {
+    box-sizing: border-box;
+    position: relative;
+    margin-top: 20px;
+}
+.page-user .pager {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+}
+</style>
