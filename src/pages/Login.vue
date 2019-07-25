@@ -4,7 +4,7 @@
         <Sider class="sider" :width="380">
             <Form class="form" ref="form" :model="form" :rules="formRule">
                 <FormItem>
-                    <h1>管理系统登陆</h1>
+                    <h1>管理系统登陆页面</h1>
                 </FormItem>
                 <FormItem prop="username">
                     <i-input v-model="form.username" prefix="md-person" clearable></i-input>
